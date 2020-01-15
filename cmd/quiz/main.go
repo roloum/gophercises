@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"flag"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 type problem struct {
@@ -37,9 +39,26 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(problems)
+
+	var correct int
+	r := bufio.NewReader(os.Stdin)
+
+	for _, p := range problems {
+		fmt.Printf("%v=", p.question)
+		answer, _ := r.ReadString('\n')
+		if strings.TrimRight(answer, "\n") == p.answer {
+			correct++
+		}
+	}
+
+	fmt.Printf("You scored %v out of %v\n", correct, len(problems))
 
 	return nil
+}
+
+func readAnswer() (string, error) {
+
+	return "", nil
 }
 
 //Reads the file and returns an array of problem
@@ -47,12 +66,15 @@ func readFile(csvFileName string) ([]problem, error) {
 
 	var problems []problem
 
+	//Open CSV File
 	file, err := os.Open(csvFileName)
 	if err != nil {
 		return problems, err
 	}
+	//Close file on return
 	defer file.Close()
 
+	//Iterate file
 	r := csv.NewReader(file)
 	for {
 		var row []string
