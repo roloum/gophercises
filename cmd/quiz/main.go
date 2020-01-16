@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 type problem struct {
@@ -36,12 +37,18 @@ func run() error {
 
 	//Read file in problem array
 	problems, err := readFile(csvFileName)
+	count := len(problems)
 	if err != nil {
 		return err
 	}
 
 	var correct int
 	r := bufio.NewReader(os.Stdin)
+
+	t := time.NewTimer(time.Duration(limit) * time.Second)
+	defer t.Stop()
+
+	go timer(t, &correct, count)
 
 	for _, p := range problems {
 		fmt.Printf("%v=", p.question)
@@ -51,14 +58,20 @@ func run() error {
 		}
 	}
 
-	fmt.Printf("You scored %v out of %v\n", correct, len(problems))
+	result(correct, count)
 
 	return nil
 }
 
-func readAnswer() (string, error) {
+func timer(t *time.Timer, correct *int, count int) {
+	<-t.C
+	fmt.Println("\nTime is up")
+	result(*correct, count)
+	os.Exit(0)
+}
 
-	return "", nil
+func result(correct, count int) {
+	fmt.Printf("You scored %v out of %v\n", correct, count)
 }
 
 //Reads the file and returns an array of problem
