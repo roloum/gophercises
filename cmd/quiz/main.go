@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -50,7 +51,7 @@ problemLoop:
 		go func() {
 			var answer string
 			fmt.Scanf("%s\n", &answer)
-			answerCh <- answer
+			answerCh <- strings.TrimSpace(answer)
 		}()
 
 		select {
