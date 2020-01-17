@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"encoding/csv"
 	"flag"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -37,41 +35,39 @@ func run() error {
 
 	//Read file in problem array
 	problems, err := readFile(csvFileName)
-	count := len(problems)
 	if err != nil {
 		return err
 	}
 
 	var correct int
-	r := bufio.NewReader(os.Stdin)
-
 	t := time.NewTimer(time.Duration(limit) * time.Second)
-	defer t.Stop()
 
-	go timer(t, &correct, count)
-
+problemLoop:
 	for _, p := range problems {
 		fmt.Printf("%v=", p.question)
-		answer, _ := r.ReadString('\n')
-		if strings.TrimRight(answer, "\n") == p.answer {
-			correct++
+
+		answerCh := make(chan string)
+		go func() {
+			var answer string
+			fmt.Scanf("%s\n", &answer)
+			answerCh <- answer
+		}()
+
+		select {
+		case answer := <-answerCh:
+			if answer == p.answer {
+				correct++
+			}
+		case <-t.C:
+			fmt.Println("")
+			break problemLoop
 		}
+
 	}
 
-	result(correct, count)
+	fmt.Printf("You scored %v out of %v\n", correct, len(problems))
 
 	return nil
-}
-
-func timer(t *time.Timer, correct *int, count int) {
-	<-t.C
-	fmt.Println("\nTime is up")
-	result(*correct, count)
-	os.Exit(0)
-}
-
-func result(correct, count int) {
-	fmt.Printf("You scored %v out of %v\n", correct, count)
 }
 
 //Reads the file and returns an array of problem
