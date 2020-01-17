@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -13,6 +14,10 @@ import (
 type problem struct {
 	question string
 	answer   string
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
@@ -28,16 +33,25 @@ func run() error {
 
 	var csvFileName string
 	var limit int
+	var shuffle bool
 
 	flag.StringVar(&csvFileName, "csv", "problems.csv",
 		"A CSV in the format of 'question,answer'")
 	flag.IntVar(&limit, "limit", 30, "The time limit for the quiz in seconds")
+	flag.BoolVar(&shuffle, "s", false, "Shuffle problems")
 	flag.Parse()
 
 	//Read file in problem array
 	problems, err := readFile(csvFileName)
 	if err != nil {
 		return err
+	}
+
+	if shuffle {
+		for i := range problems {
+			j := rand.Intn(i + 1)
+			problems[i], problems[j] = problems[j], problems[i]
+		}
 	}
 
 	var correct int
