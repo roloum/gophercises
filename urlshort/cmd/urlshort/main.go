@@ -1,19 +1,26 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/roloum/gophercises/urlshort"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
 
 	var yamlFile, jsonFile string
+	var mongodb bool
+
 	flag.StringVar(&yamlFile, "yaml-file", "", "YAML File")
 	flag.StringVar(&jsonFile, "json-file", "", "JSON File")
+	flag.BoolVar(&mongodb, "mongodb", false, "MongoDB collection")
 	flag.Parse()
 
 	mux := defaultMux()
@@ -73,6 +80,37 @@ func main() {
 			panic(err)
 		}
 		handler = jsonHandler
+
+	}
+
+	if mongodb {
+		fmt.Println("Loading routes from MongoDB collection")
+
+		clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+		client, err := mongo.Connect(context.TODO(), clientOptions)
+
+		if err != nil {
+			panic(err)
+		}
+
+		err = client.Ping(context.TODO(), nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		collection := client.Database("urlshort").Collection("route")
+
+		mongoHandler, err := urlshort.MongoDBHandler(collection, handler)
+		if err != nil {
+			panic(err)
+		}
+
+		handler = mongoHandler
+
+		err = client.Disconnect(context.TODO())
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 

@@ -1,10 +1,13 @@
 package urlshort
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"gopkg.in/yaml.v2"
 )
 
@@ -84,6 +87,36 @@ func parse(content []byte, format string) ([]route, error) {
 	}
 
 	return routes, err
+}
+
+//MongoDBHandler will load the routes from a MongoDB Collection
+//Client must provide the MongoDB collection and the fallback handler
+func MongoDBHandler(collection *mongo.Collection, fallback http.Handler) (
+	http.HandlerFunc, error) {
+
+	routes := []route{}
+	var err error
+
+	cur, err := collection.Find(context.TODO(), bson.D{{}})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var r route
+		err := cur.Decode(&r)
+		if err != nil {
+			return nil, err
+		}
+		routes = append(routes, r)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return MapHandler(buildMap(routes), fallback), nil
 }
 
 //buildMap receives an array of route struct and creates a map
