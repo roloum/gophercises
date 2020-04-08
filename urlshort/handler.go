@@ -1,10 +1,15 @@
 package urlshort
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
 )
+
+const _yaml string = "yaml"
+const _json string = "json"
 
 // MapHandler will return an http.HandlerFunc (which also
 // implements http.Handler) that will attempt to map any
@@ -45,7 +50,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 
-	routes, err := parseYAML(yml)
+	routes, err := parse(yml, _yaml)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +58,30 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	return MapHandler(buildMap(routes), fallback), nil
 }
 
-//parseYAML converts the YAML structure into an array of route struct
-func parseYAML(yml []byte) ([]route, error) {
-	routes := []route{}
+//JSONHandler will parse the provided JSON and then return an http.HandlerFunc
+func JSONHandler(json []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	routes, err := parse(json, _json)
+	if err != nil {
+		return nil, err
+	}
 
-	err := yaml.Unmarshal(yml, &routes)
+	return MapHandler(buildMap(routes), fallback), nil
+}
+
+//parse parses structure into an array of route struct
+//It can parse YAML or JSON
+func parse(content []byte, format string) ([]route, error) {
+
+	routes := []route{}
+	var err error
+
+	if format == _yaml {
+		err = yaml.Unmarshal(content, &routes)
+	} else if format == _json {
+		err = json.Unmarshal(content, &routes)
+	} else {
+		err = errors.New("Unknown format")
+	}
 
 	return routes, err
 }
@@ -78,7 +102,7 @@ func buildMap(routes []route) map[string]string {
 //route holds the URL a given path needs to be redirected to
 type route struct {
 	//Path
-	Path string `yaml:"path"`
+	Path string `yaml:"path" json:"path"`
 	//URL ...
-	URL string `yaml:"url"`
+	URL string `yaml:"url" json:"url"`
 }

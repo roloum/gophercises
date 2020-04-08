@@ -11,8 +11,9 @@ import (
 
 func main() {
 
-	var yamlFile string
+	var yamlFile, jsonFile string
 	flag.StringVar(&yamlFile, "yaml-file", "", "YAML File")
+	flag.StringVar(&jsonFile, "json-file", "", "JSON File")
 	flag.Parse()
 
 	mux := defaultMux()
@@ -39,6 +40,8 @@ func main() {
 		//convert data to byte array
 		yaml = []byte(data)
 	} else {
+		fmt.Printf("Reading YAML from file: %v\n", yamlFile)
+
 		//read file
 		yaml, err = ioutil.ReadFile(yamlFile)
 		if err != nil {
@@ -53,8 +56,28 @@ func main() {
 		panic(err)
 	}
 
+	//JSON handler. Since YAML is superset of JSON, we're going to read
+	//json from a file, use the yamlHandler as fallback and create the
+	//jsonHandler using the same YAMLHandler function
+	var handler http.HandlerFunc = yamlHandler
+
+	if jsonFile != "" {
+		fmt.Printf("Reading JSON from file: %v\n", jsonFile)
+
+		json, err := ioutil.ReadFile(jsonFile)
+		if err != nil {
+			panic(err)
+		}
+		jsonHandler, err := urlshort.JSONHandler(json, yamlHandler)
+		if err != nil {
+			panic(err)
+		}
+		handler = jsonHandler
+
+	}
+
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	http.ListenAndServe(":8080", handler)
 }
 
 func defaultMux() *http.ServeMux {
