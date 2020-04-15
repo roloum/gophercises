@@ -1,1 +1,5 @@
 Gophercising!
+
+- quiz
+- urlshort
+- cyoa
