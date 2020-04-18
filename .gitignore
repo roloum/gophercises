@@ -1,3 +1,5 @@
 quiz/quiz
 urlshort/cmd/urlshort/urlshort
 cyoa/cmd/cyoa/cyoa
+cyoa/cmd/cyoacli/cyoa
+cyoa/cmd/cyoaweb/cyoaweb
