@@ -43,7 +43,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if path == "" {
 		path = h.defaultChapter
+	} else if _, ok := h.story[path]; !ok {
+		log.Printf("Story not found: %v\n", path)
+		http.Error(w, "Story not found", http.StatusNotFound)
+		return
 	}
 
-	h.tpl.Execute(w, h.story[path])
+	if err := h.tpl.Execute(w, h.story[path]); err != nil {
+		h.log.Printf("Error executing template: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
