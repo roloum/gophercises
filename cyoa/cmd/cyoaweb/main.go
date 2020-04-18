@@ -28,8 +28,9 @@ func run() error {
 	var cfg struct {
 		Datastore string `type:"string" conf:"default:json"`
 		Json      struct {
-			File string `type:"string"`
-			Dir  string `type:"string" conf:"default:../../json"`
+			File    string `type:"string"`
+			Dir     string `type:"string" conf:"default:../../json"`
+			Chapter string `type:"string" conf:"default:intro"`
 		}
 	}
 
