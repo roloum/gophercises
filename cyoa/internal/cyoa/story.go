@@ -2,6 +2,7 @@ package cyoa
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 )
 
@@ -21,19 +22,28 @@ type Option struct {
 	Chapter string `json:"arc"`
 }
 
-//NewStoryHTTPHandler ...
-func NewStoryHTTPHandler(story Story, tpl *template.Template) http.Handler {
-	h := handler{story, tpl}
+//NewChapterHTTPHandler ...
+func NewChapterHTTPHandler(story Story, defaultChapter string,
+	tpl *template.Template, log *log.Logger) http.Handler {
+	h := handler{story, defaultChapter, tpl, log}
 	return h
-
 }
 
 type handler struct {
-	story Story
-	tpl   *template.Template
+	story          Story
+	defaultChapter string
+	tpl            *template.Template
+	log            *log.Logger
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	hello := "Hello world"
-	w.Write([]byte(hello))
+
+	path := r.URL.Path[1:]
+	log.Printf("Requesting: %v\n", path)
+
+	if path == "" {
+		path = h.defaultChapter
+	}
+
+	h.tpl.Execute(w, h.story[path])
 }

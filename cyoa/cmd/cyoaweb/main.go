@@ -59,15 +59,13 @@ func run() error {
 		return errors.Wrap(err, "Loading story")
 	}
 
-	fmt.Printf("%+v\n", story)
-
-	tpl, err := template.ParseFiles("template/story.html")
+	chapterTpl, err := template.ParseFiles("template/chapter.html")
 	if err != nil {
 		return errors.Wrap(err, "Parsing HTML template")
 	}
 
-	log.Fatal(http.ListenAndServe("localhost:8000", cyoa.NewStoryHTTPHandler(story,
-		tpl)))
+	log.Fatal(http.ListenAndServe("localhost:8000",
+		cyoa.NewChapterHTTPHandler(story, cfg.Json.Chapter, chapterTpl, log)))
 
 	return nil
 }
