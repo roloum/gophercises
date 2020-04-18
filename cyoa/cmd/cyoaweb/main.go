@@ -53,10 +53,10 @@ func run() error {
 
 	story, err := dataStore.LoadStory(cfg.Json.File)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Loading story")
 	}
 
-	fmt.Println(story)
+	fmt.Printf("%+v\n", story)
 
 	return nil
 }
