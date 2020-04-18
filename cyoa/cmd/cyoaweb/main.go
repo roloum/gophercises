@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/ardanlabs/conf"
@@ -57,6 +59,14 @@ func run() error {
 	}
 
 	fmt.Printf("%+v\n", story)
+
+	tpl, err := template.ParseFiles("template/story.html")
+	if err != nil {
+		return errors.Wrap(err, "Parsing HTML template")
+	}
+
+	log.Fatal(http.ListenAndServe("localhost:8000", cyoa.NewStoryHTTPHandler(story,
+		tpl)))
 
 	return nil
 }
