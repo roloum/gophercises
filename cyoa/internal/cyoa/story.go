@@ -22,18 +22,38 @@ type Option struct {
 	Chapter string `json:"arc"`
 }
 
-//NewChapterHTTPHandler ...
-func NewChapterHTTPHandler(story Story, defaultChapter string,
-	tpl *template.Template, log *log.Logger) http.Handler {
-	h := handler{story, defaultChapter, tpl, log}
-	return h
-}
-
 type handler struct {
 	story          Story
 	defaultChapter string
-	tpl            *template.Template
 	log            *log.Logger
+	tpl            *template.Template
+}
+
+//Default HTML template
+var defaultTemplate = `Hello!`
+
+//WithNewTemplate option for setting up new template
+func WithNewTemplate(tpl *template.Template) func(h *handler) {
+	return func(h *handler) {
+		h.tpl = tpl
+	}
+}
+
+//NewChapterHTTPHandler ...
+func NewChapterHTTPHandler(story Story, defaultChapter string,
+	log *log.Logger, options ...func(h *handler)) http.Handler {
+
+	//Create template for default HTML
+	tpl := template.Must(template.New("").Parse(defaultTemplate))
+	//Setting up handler with default options
+	h := handler{story, defaultChapter, log, tpl}
+
+	//Applying Options
+	for _, opt := range options {
+		opt(&h)
+	}
+
+	return h
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

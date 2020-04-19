@@ -65,7 +65,8 @@ func run() error {
 	}
 
 	log.Fatal(http.ListenAndServe("localhost:8000",
-		cyoa.NewChapterHTTPHandler(story, cfg.Json.Chapter, chapterTpl, log)))
+		cyoa.NewChapterHTTPHandler(story, cfg.Json.Chapter, log,
+			cyoa.WithNewTemplate(chapterTpl))))
 
 	return nil
 }
