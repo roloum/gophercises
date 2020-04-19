@@ -2,7 +2,7 @@ package cyoa
 
 //StoryAccessObject ...
 type StoryAccessObject interface {
-	LoadStory(story string) (Story, error)
+	LoadStory(storyID string, story *Story) error
 }
 
 //DataStore ...
@@ -17,6 +17,8 @@ func NewDataStore(dao StoryAccessObject) *DataStore {
 }
 
 //LoadStory ...
-func (d *DataStore) LoadStory(story string) (Story, error) {
-	return d.dao.LoadStory(story)
+func (d *DataStore) LoadStory(storyID string) (Story, error) {
+	story := Story{}
+	err := d.dao.LoadStory(storyID, &story)
+	return story, err
 }

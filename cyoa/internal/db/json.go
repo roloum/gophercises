@@ -17,34 +17,33 @@ type JSON struct {
 }
 
 //LoadStory ...
-func (j *JSON) LoadStory(fileName string) (cyoa.Story, error) {
+func (j *JSON) LoadStory(fileName string, story *cyoa.Story) error {
 
 	if fileName == "" {
-		return nil, errors.New("Story is empty")
+		return errors.New("Story is empty")
 	}
 
 	j.Log.Printf("Loading story: %v\n", fileName)
 
-	return parseJSONFile(fileName, j.Log)
+	return parseJSONFile(fileName, story, j.Log)
 }
 
-func parseJSONFile(fileName string, log *log.Logger) (cyoa.Story, error) {
+func parseJSONFile(fileName string, story *cyoa.Story, log *log.Logger) error {
 
 	log.Printf("Opening file: %v\n", fileName)
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	decoder := json.NewDecoder(file)
-	var story cyoa.Story
 
 	log.Printf("Decoding file: %v\n", fileName)
 
 	if err := decoder.Decode(&story); err != nil {
-		return nil, err
+		return err
 	}
 
-	return story, nil
+	return nil
 }
