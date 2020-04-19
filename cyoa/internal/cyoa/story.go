@@ -6,6 +6,9 @@ import (
 	"net/http"
 )
 
+//Stories ...
+type Stories map[string]Story
+
 //Story ...
 type Story map[string]Chapter
 

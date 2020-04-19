@@ -1,0 +1,107 @@
+{
+  "intro": {
+    "title": "Intro Chapter",
+    "story": [
+      "Intro paragraph 1",
+      "Intro paragraph 2",
+      "Intro paragraph 3"
+    ],
+    "options": [
+      {
+        "text": "New York link",
+        "arc": "new-york"
+      },
+      {
+        "text": "Denver link.",
+        "arc": "denver"
+      }
+    ]
+  },
+  "new-york": {
+    "title": "New York chapter",
+    "story": [
+      "New York paragraph 1",
+      "New York paragraph 2",
+      "New York paragraph 3",
+      "New York paragraph 4"
+    ],
+    "options": [
+      {
+        "text": "Home link",
+        "arc": "home"
+      },
+      {
+        "text": "Maybe people just dress funny in the big city. Grab a a seat and see what happens.",
+        "arc": "debate"
+      }
+    ]
+  },
+  "debate": {
+    "title": "The Great Debate Chapter",
+    "story": [
+      "The Great Debate Chapter paragraph 1"
+    ],
+    "options": [
+      {
+        "text": "sean-kelly link",
+        "arc": "sean-kelly"
+      },
+      {
+        "text": "mark-bates link",
+        "arc": "mark-bates"
+      },
+      {
+        "text": "Home link",
+        "arc": "home"
+      }
+    ]
+  },
+  "sean-kelly": {
+    "title": "Sean kelly chapter",
+    "story": [
+      "Sean kelly paragraph 1",
+      "Sean kelly paragraph 2",
+      "Sean kelly paragraph 3",
+      "Sean kelly paragraph 4"
+    ],
+    "options": [
+      {
+        "text": "Home link",
+        "arc": "home"
+      }
+    ]
+  },
+  "mark-bates": {
+    "title": "Mark Bates chapter",
+    "story": [
+      "Mark Bates paragraph 1",
+      "Mark Bates paragraph 2",
+      "Mark Bates paragraph 3"
+    ],
+    "options": [
+      {
+        "text": "Home link",
+        "arc": "home"
+      }
+    ]
+  },
+  "denver": {
+    "title": "Denver chapter",
+    "story": [
+      "You arrive in Denver and start your trip by attending a hockey game. The Avalanche had a rough season last year, but your gopher buddy is hopeful that they will do better this year. He also explains that he is tired of hearing about \"Two time Stanley Cup champion Phil Kessel.\" You suspect that he is still a little salty about the Penguins beating the San Jose Sharks in the Stanley Cup, but you decide to give him a break."
+    ],
+    "options": [
+      {
+        "text": "Home link",
+        "arc": "home"
+      }
+    ]
+  },
+  "home": {
+    "title": "Home Sweet Home",
+    "story": [
+      "Your little gopher buddy thanks you for taking him on an adventure. Perhaps next year you can look into travelling abroad - you have both heard that gophers are all the rage in China."
+    ],
+    "options": []
+  }
+}

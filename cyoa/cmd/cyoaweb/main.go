@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/ardanlabs/conf"
 	"github.com/pkg/errors"
@@ -64,9 +67,35 @@ func run() error {
 		return errors.Wrap(err, "Parsing HTML template")
 	}
 
-	log.Fatal(http.ListenAndServe("localhost:8000",
-		cyoa.NewChapterHTTPHandler(story, cfg.Json.Chapter, log,
-			cyoa.WithNewTemplate(chapterTpl))))
+	chapterHandler := cyoa.NewChapterHTTPHandler(story, cfg.Json.Chapter, log,
+		cyoa.WithNewTemplate(chapterTpl))
+	sm := http.NewServeMux()
+	sm.Handle("/", chapterHandler)
+
+	server := &http.Server{
+		Addr:    ":8000",
+		Handler: sm,
+	}
+
+	//Run server
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	//Block program until error is thrown or kill signal is received
+	sigChan := make(chan os.Signal)
+	signal.Notify(sigChan, os.Interrupt)
+	signal.Notify(sigChan, os.Kill)
+
+	sig := <-sigChan
+	log.Println("Terminating.", sig)
+
+	//Shutdown gracefully
+	tc, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	cancel()
+	server.Shutdown(tc)
 
 	return nil
 }

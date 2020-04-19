@@ -16,6 +16,11 @@ type JSON struct {
 	Log  *log.Logger
 }
 
+//LoadStories ...
+func (j *JSON) LoadStories(dir string, stories *cyoa.Stories) {
+
+}
+
 //LoadStory ...
 func (j *JSON) LoadStory(fileName string, story *cyoa.Story) error {
 
