@@ -20,35 +20,72 @@ func Parse(r io.Reader) ([]Link, error) {
 		return nil, err
 	}
 
-	links := []Link{}
+	return search(doc), nil
 
-	queue := []*html.Node{doc}
+}
+
+//Searches through the entire tree of the html using breath first approach
+//and returns an array with the "a href" elements found in the document
+func search(root *html.Node) []Link {
+	links := []Link{}
+	queue := []*html.Node{root}
 
 	for len(queue) > 0 {
+
+		//Dequeue
 		node := queue[0]
 		queue = queue[1:]
 
 		if node.Type == html.ElementNode && node.Data == "a" {
+			links = append(links, getLink(node))
 
-			var href string
-
-			for _, a := range node.Attr {
-				if a.Key == "href" {
-					href = a.Val
-					break
-				}
-			}
-
-			links = append(links, Link{href, node.FirstChild.Data})
-
-			node = node.FirstChild
-
+			//don't add a's children nodes to queue
+			continue
 		}
 
+		//Add children nodes to queue
 		for child := node.FirstChild; child != nil; child = child.NextSibling {
 			queue = append(queue, child)
 		}
+
 	}
 
-	return links, nil
+	return links
+
+}
+
+//Extracts url and text from an "a href" node
+func getLink(node *html.Node) Link {
+	var href string
+
+	//Find URL
+	for _, a := range node.Attr {
+		if a.Key == "href" {
+			href = a.Val
+			break
+		}
+	}
+
+	return Link{href, getText(node.FirstChild)}
+
+}
+
+//Gets link text recursively in the following order
+//1. node's text
+//2. next sibling's text
+//3. FirstChild's text
+func getText(root *html.Node) string {
+	var text string
+
+	node := root
+	for node != nil {
+		if node.Type == html.TextNode {
+			text += node.Data
+		}
+		if node.FirstChild != nil {
+			text += getText(node.FirstChild)
+		}
+		node = node.NextSibling
+	}
+	return text
 }
