@@ -2,6 +2,7 @@ package link
 
 import (
 	"io"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -11,8 +12,8 @@ type Link struct {
 	Href, Text string
 }
 
-//Parse parses the content of r and returns an array of Link with all the
-//HTML a tags found in the document
+//Parse parses the content of r using breath first approach and returns an
+// array of Link with all the HTML a tags found in the document
 func Parse(r io.Reader) ([]Link, error) {
 
 	doc, err := html.Parse(r)
@@ -80,10 +81,11 @@ func getText(root *html.Node) string {
 	node := root
 	for node != nil {
 		if node.Type == html.TextNode {
-			text += node.Data
+			//Remove \n and spaces to the left
+			text += strings.TrimSpace(strings.ReplaceAll(node.Data, "\n", ""))
 		}
 		if node.FirstChild != nil {
-			text += getText(node.FirstChild)
+			text += " " + getText(node.FirstChild)
 		}
 		node = node.NextSibling
 	}
