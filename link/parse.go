@@ -21,13 +21,13 @@ func Parse(r io.Reader) ([]Link, error) {
 		return nil, err
 	}
 
-	return search(doc), nil
+	return getLinks(doc), nil
 
 }
 
 //Searches through the entire tree of the html using breath first approach
 //and returns an array with the "a href" elements found in the document
-func search(root *html.Node) []Link {
+func getLinks(root *html.Node) []Link {
 	links := []Link{}
 	queue := []*html.Node{root}
 
@@ -38,7 +38,7 @@ func search(root *html.Node) []Link {
 		queue = queue[1:]
 
 		if node.Type == html.ElementNode && node.Data == "a" {
-			links = append(links, getLink(node))
+			links = append(links, builtLink(node))
 
 			//don't add a's children nodes to queue
 			continue
@@ -56,7 +56,7 @@ func search(root *html.Node) []Link {
 }
 
 //Extracts url and text from an "a href" node
-func getLink(node *html.Node) Link {
+func builtLink(node *html.Node) Link {
 	var href string
 
 	//Find URL
@@ -67,7 +67,7 @@ func getLink(node *html.Node) Link {
 		}
 	}
 
-	return Link{href, getText(node.FirstChild)}
+	return Link{href, getLinkText(node.FirstChild)}
 
 }
 
@@ -75,7 +75,7 @@ func getLink(node *html.Node) Link {
 //1. node's text
 //2. next sibling's text
 //3. FirstChild's text
-func getText(root *html.Node) string {
+func getLinkText(root *html.Node) string {
 	var text string
 
 	node := root
@@ -85,7 +85,7 @@ func getText(root *html.Node) string {
 			text += strings.TrimSpace(strings.ReplaceAll(node.Data, "\n", ""))
 		}
 		if node.FirstChild != nil {
-			text += " " + getText(node.FirstChild)
+			text += " " + getLinkText(node.FirstChild)
 		}
 		node = node.NextSibling
 	}
