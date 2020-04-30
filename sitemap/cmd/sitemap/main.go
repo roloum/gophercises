@@ -44,11 +44,11 @@ func run() error {
 	logger.Println("Configuration loaded")
 	logger.Println(domainURL, depth)
 
-	urls, err := sitemap.GetPages(domainURL, depth, logger)
+	pages, err := sitemap.GetPages(domainURL, depth, logger)
 	if err != nil {
 		return err
 	}
-	logger.Printf("\n%s", strings.Join(urls, "\n"))
+	logger.Printf("\n%s", strings.Join(pages, "\n"))
 
 	return nil
 }

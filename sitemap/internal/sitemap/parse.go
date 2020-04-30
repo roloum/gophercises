@@ -23,31 +23,39 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 		depth int
 	}
 
-	logger.Println("Domain added to the BFS queue")
+	logger.Printf("Domain %s added to the BFS queue", domainURL)
 
 	//depth starts on 1 because we are going to include in the pages array
 	//the links of the last URL that we are going to process
 	queue := []node{node{domainURL, 1}}
 
-	pages := []string{fmt.Sprintf("%s/", domainURL)}
+	pages := []string{domainURL}
 
 	visited := make(map[string]string)
-	visited[fmt.Sprintf("%s/", domainURL)] = domainURL
+	visited[domainURL] = domainURL
 
 	for len(queue) > 0 {
 		n := queue[0]
 		queue = queue[1:]
 
-		//if node is beyond depth, skip
+		//Since we are running BFS, once we find a depth beyond the parameter
+		//we can break the loop
 		if depth > 0 && n.depth > depth {
-			continue
+			logger.Printf(
+				"Found link with depth(%d) beyond the parameter (%d)\nExit!",
+				n.depth, depth)
+			break
 		}
 
+		logger.Printf("Retrieving links for %s\n", n.page)
 		links, err := retrievePageLinks(n.page)
 		if err != nil {
 			return nil, err
 		}
 
+		logger.Printf("Found %d links\n", len(links))
+
+		added := 0
 		for _, link := range links {
 
 			var url string
@@ -59,17 +67,29 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 				}
 				url = link.Href
 			} else {
+				//Omit # and mailto:
+				if strings.HasPrefix(link.Href, "#") ||
+					strings.HasPrefix(link.Href, "mailto:") ||
+					//Found a link in the form
+					//jon@calhoun.io
+					//without mailto tag or /
+					!strings.HasPrefix(link.Href, "/") {
+					continue
+				}
+
 				//Add domain to link
 				url = fmt.Sprintf("%s%s", domainURL, link.Href)
 			}
+			url = strings.TrimSuffix(url, "/")
 
 			if _, ok := visited[url]; !ok {
 				pages = append(pages, url)
 				queue = append(queue, node{url, n.depth + 1})
 				visited[url] = url
+				added++
 			}
 		}
-
+		logger.Printf("Added %d pages to the queue\n", added)
 	}
 
 	return pages, nil

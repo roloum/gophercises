@@ -32,11 +32,12 @@ func TestGetPages(t *testing.T) {
 	}
 
 	expected := []string{
-		fmt.Sprintf("%s/", serverName),
+		fmt.Sprintf("%s", serverName),
 		fmt.Sprintf("%s/page1", serverName),
 		fmt.Sprintf("%s/page2", serverName),
 		fmt.Sprintf("%s/page3", serverName),
 		fmt.Sprintf("%s/page4", serverName),
+		fmt.Sprintf("%s/page5", serverName),
 	}
 
 	if !reflect.DeepEqual(expected, pages) {
@@ -53,7 +54,7 @@ func TestGetPagesDepth(t *testing.T) {
 	}
 
 	expected := []string{
-		fmt.Sprintf("%s/", serverName),
+		fmt.Sprintf("%s", serverName),
 		fmt.Sprintf("%s/page1", serverName),
 		fmt.Sprintf("%s/page2", serverName),
 	}
@@ -71,6 +72,7 @@ func startUpServer(serverChan chan int, t *testing.T) {
 	sm.HandleFunc("/page2", page2)
 	sm.HandleFunc("/page3", page3)
 	sm.HandleFunc("/page4", page4)
+	sm.HandleFunc("/page5", page5)
 
 	server := &http.Server{
 		Addr:    ":8001",
@@ -95,8 +97,10 @@ func startUpServer(serverChan chan int, t *testing.T) {
 
 func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w,
-		`<a href="/page1">Page 1</a><br>
-<a href="https://github.com">Github</a>`)
+		`<a href="/page1/">Page 1</a><br>
+<a href="https://github.com">Github</a><br>
+<a href="#">#</a><br>
+<a href="mailto:info@example.com">Mail</a>`)
 }
 
 func page1(w http.ResponseWriter, r *http.Request) {
@@ -108,9 +112,13 @@ func page2(w http.ResponseWriter, r *http.Request) {
 }
 
 func page3(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, `<a href="/page4">Page 4</a>`)
+	fmt.Fprint(w, `<a href="/page4/">Page 4</a>`)
 }
 
 func page4(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, `<a href="/">Home</a>`)
+	fmt.Fprint(w, `<a href="/page5/">Page 5</a><br><a href="/">Home</a>`)
+}
+
+func page5(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, `<a href="/page3/">Page 3</a>`)
 }
