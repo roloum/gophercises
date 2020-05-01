@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/roloum/gophercises/link"
@@ -48,10 +49,11 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 		}
 
 		logger.Printf("Retrieving links for %s\n", n.page)
-		links, err := retrievePageLinks(n.page)
+		links, responseURL, err := retrievePageLinks(n.page)
 		if err != nil {
 			return nil, err
 		}
+		logger.Printf("Response URL: %s\n", responseURL)
 
 		logger.Printf("Found %d links\n", len(links))
 
@@ -60,9 +62,11 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 
 			var url string
 
+			logger.Println(link.Href)
+
 			if strings.HasPrefix(link.Href, "http") {
 				//Skip link if it's from different domain
-				if !strings.HasPrefix(link.Href, domainURL) {
+				if !strings.HasPrefix(link.Href, responseURL) {
 					continue
 				}
 				url = link.Href
@@ -72,13 +76,13 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 					strings.HasPrefix(link.Href, "mailto:") ||
 					//Found a link in the form
 					//jon@calhoun.io
-					//without mailto tag or /
+					//without mailto, tag or /
 					!strings.HasPrefix(link.Href, "/") {
 					continue
 				}
 
 				//Add domain to link
-				url = fmt.Sprintf("%s%s", domainURL, link.Href)
+				url = fmt.Sprintf("%s%s", responseURL, link.Href)
 			}
 			url = strings.TrimSuffix(url, "/")
 
@@ -96,15 +100,22 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 }
 
 //retrievePageLinks Retrieves the list of links in the URL page
-func retrievePageLinks(pageURL string) ([]link.Link, error) {
+func retrievePageLinks(pageURL string) ([]link.Link, string, error) {
 
 	response, err := http.Get(pageURL)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer response.Body.Close()
 
-	return link.Parse(response.Body)
+	result, err := link.Parse(response.Body)
+
+	baseURL := &url.URL{
+		Scheme: response.Request.URL.Scheme,
+		Host:   response.Request.URL.Host,
+	}
+
+	return result, baseURL.String(), err
 }
 
 // TODO: validate domainURL

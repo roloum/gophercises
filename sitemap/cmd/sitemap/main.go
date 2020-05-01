@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/roloum/gophercises/sitemap/internal/sitemap"
 )
@@ -22,18 +22,27 @@ func main() {
 
 func run() error {
 
-	var domainURL string
+	var domainURL, logFileName string
 	var depth int
-
-	logger := log.New(os.Stdout, appName,
-		log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
-
-	logger.Println("Parsing configuration")
 
 	flag.StringVar(&domainURL, "domainURL", "https://www.calhoun.io",
 		"URL used to build the site map")
 	flag.IntVar(&depth, "depth", 0, "Maximum number of links to follow")
+	flag.StringVar(&logFileName, "logFileName", "/dev/null", "Log file name")
 	flag.Parse()
+
+	logf, err := os.OpenFile(logFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := logf.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	logger := log.New(logf, appName,
+		log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile)
 
 	if domainURL == "" {
 		return errors.New("Domain can not be empty")
@@ -48,7 +57,13 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	logger.Printf("\n%s", strings.Join(pages, "\n"))
+	fmt.Println(pages)
 
+	/*
+		pagesXML, err := xml.Marshal(pages)
+		for _, p := range pagesXML {
+			fmt.Println(string(p))
+		}
+	*/
 	return nil
 }

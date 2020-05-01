@@ -108,7 +108,7 @@ func page1(w http.ResponseWriter, r *http.Request) {
 }
 
 func page2(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, `<a href="/page3">Page 3</a>`)
+	fmt.Fprint(w, `<a href="/page3">Page 3</a><a href="broken_link"></a>`)
 }
 
 func page3(w http.ResponseWriter, r *http.Request) {
