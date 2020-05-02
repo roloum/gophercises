@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
@@ -10,7 +11,9 @@ import (
 	"github.com/roloum/gophercises/sitemap/internal/sitemap"
 )
 
-var appName = "sitemap"
+const appName = "sitemap"
+
+const xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9"
 
 func main() {
 
@@ -57,7 +60,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(pages)
 
 	/*
 		pagesXML, err := xml.Marshal(pages)
@@ -65,5 +67,25 @@ func run() error {
 			fmt.Println(string(p))
 		}
 	*/
+	type loc struct {
+		Value string `xml:"loc"`
+	}
+	type urlset struct {
+		Urls  []loc  `xml:"url"`
+		Xmlns string `xml:"xmlns,attr"`
+	}
+	toXml := urlset{Xmlns: xmlns}
+	for _, page := range pages {
+		toXml.Urls = append(toXml.Urls, loc{page})
+	}
+
+	fmt.Println(xmlns)
+	enc := xml.NewEncoder(os.Stdout)
+	enc.Indent("", "  ")
+	if err := enc.Encode(toXml); err != nil {
+		return err
+	}
+	fmt.Println()
+
 	return nil
 }

@@ -1,7 +1,7 @@
 package sitemap
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,11 +13,13 @@ import (
 //GetPages creates a sitemap for the
 func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 	error) {
+	return bfs(domainURL, depth, logger)
+}
 
-	logger.Printf("Checking if %s is a valid domain\n", domainURL)
-	if err := isValidURL(domainURL); err != nil {
-		return nil, err
-	}
+//bfs performs the Breath First Search on the given URL and returns
+//an array with all the links
+func bfs(domainURL string, depth int, logger *log.Logger) ([]string,
+	error) {
 
 	type node struct {
 		page  string
@@ -32,8 +34,8 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 
 	pages := []string{domainURL}
 
-	visited := make(map[string]string)
-	visited[domainURL] = domainURL
+	visited := make(map[string]struct{})
+	visited[domainURL] = struct{}{}
 
 	for len(queue) > 0 {
 		n := queue[0]
@@ -49,47 +51,20 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 		}
 
 		logger.Printf("Retrieving links for %s\n", n.page)
-		links, responseURL, err := retrievePageLinks(n.page)
+		urls, err := getPage(n.page, logger)
 		if err != nil {
 			return nil, err
 		}
-		logger.Printf("Response URL: %s\n", responseURL)
 
-		logger.Printf("Found %d links\n", len(links))
+		logger.Printf("Found %d links\n", len(urls))
 
 		added := 0
-		for _, link := range links {
-
-			var url string
-
-			logger.Println(link.Href)
-
-			if strings.HasPrefix(link.Href, "http") {
-				//Skip link if it's from different domain
-				if !strings.HasPrefix(link.Href, responseURL) {
-					continue
-				}
-				url = link.Href
-			} else {
-				//Omit # and mailto:
-				if strings.HasPrefix(link.Href, "#") ||
-					strings.HasPrefix(link.Href, "mailto:") ||
-					//Found a link in the form
-					//jon@calhoun.io
-					//without mailto, tag or /
-					!strings.HasPrefix(link.Href, "/") {
-					continue
-				}
-
-				//Add domain to link
-				url = fmt.Sprintf("%s%s", responseURL, link.Href)
-			}
-			url = strings.TrimSuffix(url, "/")
+		for _, url := range urls {
 
 			if _, ok := visited[url]; !ok {
 				pages = append(pages, url)
 				queue = append(queue, node{url, n.depth + 1})
-				visited[url] = url
+				visited[url] = struct{}{}
 				added++
 			}
 		}
@@ -99,23 +74,65 @@ func GetPages(domainURL string, depth int, logger *log.Logger) ([]string,
 	return pages, nil
 }
 
-//retrievePageLinks Retrieves the list of links in the URL page
-func retrievePageLinks(pageURL string) ([]link.Link, string, error) {
+//getPage Retrieves the list of links in the URL page
+func getPage(pageURL string, logger *log.Logger) ([]string, error) {
+
+	logger.Printf("Requesting URL %s\n", pageURL)
 
 	response, err := http.Get(pageURL)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 	defer response.Body.Close()
-
-	result, err := link.Parse(response.Body)
 
 	baseURL := &url.URL{
 		Scheme: response.Request.URL.Scheme,
 		Host:   response.Request.URL.Host,
 	}
 
-	return result, baseURL.String(), err
+	return getLinks(response.Body, baseURL.String())
+}
+
+func getLinks(r io.Reader, baseURL string) ([]string, error) {
+	links, err := link.Parse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	urls := []string{}
+
+	for _, link := range links {
+		var url string
+
+		switch {
+		case strings.HasPrefix(link.Href, "/"):
+			url = baseURL + link.Href
+		case strings.HasPrefix(link.Href, "http"):
+			url = link.Href
+		}
+
+		urls = append(urls, strings.TrimSuffix(url, "/"))
+	}
+
+	return filter(urls, withPrefix(baseURL)), nil
+}
+
+func filter(urls []string, filterFunc func(string) bool) []string {
+	result := []string{}
+
+	for _, url := range urls {
+		if filterFunc(url) {
+			result = append(result, url)
+		}
+	}
+
+	return result
+}
+
+func withPrefix(pfx string) func(string) bool {
+	return func(link string) bool {
+		return strings.HasPrefix(link, pfx)
+	}
 }
 
 // TODO: validate domainURL
