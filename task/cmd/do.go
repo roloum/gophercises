@@ -22,8 +22,9 @@ var doCmd = &cobra.Command{
 			id, err := strconv.Atoi(arg)
 			if err != nil {
 				fmt.Printf("Error parsing: %s\n", arg)
+			} else {
+				ids = append(ids, id)
 			}
-			ids = append(ids, id)
 		}
 		fmt.Println("Do tasks ", ids)
 	},
