@@ -28,7 +28,7 @@ import (
 func main() {
 
 	//Setup database connection
-	dao := db.Bolt{Name: "task2.db"}
+	dao := db.Bolt{Name: "task.db"}
 	if err := dao.Connect(); err != nil {
 		er(err)
 	}
