@@ -3,3 +3,4 @@ urlshort/cmd/urlshort/urlshort
 cyoa/cmd/cyoacli/cyoacli
 cyoa/cmd/cyoaweb/cyoaweb
 sitemap/cmd/sitemap/sitemap
+task/task.db
