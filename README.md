@@ -6,3 +6,5 @@ https://courses.calhoun.io/courses/cor_gophercises
 - urlshort
 - cyoa
 - links
+- sitemap
+- task
