@@ -15,8 +15,37 @@ limitations under the License.
 */
 package main
 
-import "github.com/roloum/gophercises/task/cmd"
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/roloum/gophercises/task/cmd"
+	"github.com/roloum/gophercises/task/internal/db"
+	"github.com/roloum/gophercises/task/internal/models"
+)
 
 func main() {
-	cmd.Execute()
+
+	//Setup database connection
+	dao := db.Bolt{Name: "task2.db"}
+	if err := dao.Connect(); err != nil {
+		er(err)
+	}
+	defer dao.Close()
+
+	//Create task model
+	taskModel := models.NewDatastore(&dao)
+	//Store model in context to pass to command
+	ctx := context.WithValue(nil, cmd.TaskModelKey, taskModel)
+
+	if err := cmd.RootCmd.ExecuteContext(ctx); err != nil {
+		er(err)
+	}
+
+}
+
+func er(err error) {
+	fmt.Println(err)
+	os.Exit(1)
 }

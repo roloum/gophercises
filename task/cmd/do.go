@@ -31,7 +31,7 @@ var doCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(doCmd)
+	RootCmd.AddCommand(doCmd)
 
 	/*
 		doCmd.Flags().IntVarP(&taskID, "task-id", "t", 0, "Task ID")
