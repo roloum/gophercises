@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/roloum/gophercises/task/cmd"
 	"github.com/roloum/gophercises/task/internal/db"
@@ -27,9 +28,21 @@ import (
 
 func main() {
 
+	/*
+		Testing the database timeout
+		go func() {
+			crap := db.Bolt{Name: "task.db"}
+			if err := crap.Connect(); err != nil {
+				er(err)
+			}
+		}()
+	*/
+
+	time.Sleep(1 * time.Second)
+
 	//Setup database connection
 	dao := db.Bolt{Name: "task.db"}
-	if err := dao.Connect(); err != nil {
+	if err := dao.Connect(db.WithTimeout(1 * time.Second)); err != nil {
 		er(err)
 	}
 	defer dao.Close()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/roloum/gophercises/task/internal/models"
@@ -28,10 +29,23 @@ type Bolt struct {
 	db      *bolt.DB
 }
 
-//Connect establishes a connection to the Bolt database
-func (b *Bolt) Connect() (err error) {
+//WithTimeout sets the timeout option for the connection
+func WithTimeout(t time.Duration) func(o *bolt.Options) {
+	return func(o *bolt.Options) {
+		fmt.Println("setting timeout for db")
+		o.Timeout = t
+	}
+}
 
-	b.db, err = bolt.Open(b.Name, fileMode, b.Options)
+//Connect establishes a connection to the Bolt database
+func (b *Bolt) Connect(options ...func(o *bolt.Options)) (err error) {
+
+	opt := bolt.DefaultOptions
+	for _, o := range options {
+		o(opt)
+	}
+
+	b.db, err = bolt.Open(b.Name, fileMode, opt)
 	if err != nil {
 		return err
 	}
