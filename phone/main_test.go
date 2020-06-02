@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestNormalize(t *testing.T) {
 
@@ -26,4 +29,50 @@ func TestNormalize(t *testing.T) {
 		})
 	}
 	_ = normalize("")
+}
+
+func TestConnect(t *testing.T) {
+	db, err := connect()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if db.Close() != nil {
+		t.Error(err)
+	}
+}
+
+func TestCRUD(t *testing.T) {
+	db, err := connect()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println("Connection established")
+
+	defer func() {
+		db.Close()
+		fmt.Println("Closed connection")
+	}()
+
+	tx, err := db.Begin()
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer func() {
+		tx.Rollback()
+		fmt.Println("Rolled back")
+	}()
+
+	id, err := insert(tx, "9999999999")
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println("ID", id)
+
+	if err := tx.Commit(); err != nil {
+		t.Error(err)
+	}
+	fmt.Println("Committed")
+
 }

@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/ardanlabs/conf v1.2.1
 	github.com/boltdb/bolt v1.3.1
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v1.0.0
 	go.mongodb.org/mongo-driver v1.3.2
