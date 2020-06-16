@@ -64,11 +64,18 @@ func TestCRUD(t *testing.T) {
 		fmt.Println("Rolled back")
 	}()
 
-	id, err := insert(tx, "9999999999")
+	number := "9999999999"
+
+	phoneID, err := insert(tx, number)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	fmt.Println("ID", id)
+	fmt.Println("ID", phoneID)
+
+	if err := delete(tx, phoneID); err != nil {
+		return
+	}
 
 	if err := tx.Commit(); err != nil {
 		t.Error(err)
